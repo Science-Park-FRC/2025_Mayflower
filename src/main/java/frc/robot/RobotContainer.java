@@ -23,6 +23,7 @@ import frc.robot.subsystems.RollerSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import java.util.List;
 
@@ -35,9 +36,9 @@ import java.util.List;
 public class RobotContainer {
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-private final RollerSubsystem m_RollerSubsystem = new RollerSubsystem();
+  private final RollerSubsystem m_RollerSubsystem = new RollerSubsystem();
   // The driver's controller
-  XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+  CommandPS5Controller m_driverController = new CommandPS5Controller(OIConstants.kDriverControllerPort);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -57,6 +58,9 @@ private final RollerSubsystem m_RollerSubsystem = new RollerSubsystem();
                 -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                 true),
             m_robotDrive));
+
+    m_RollerSubsystem.setDefaultCommand(new RunCommand(
+        () -> m_RollerSubsystem.runMotor((m_driverController.getR2Axis()+1) / 4.0), m_RollerSubsystem));
   }
 
   /**
@@ -69,10 +73,13 @@ private final RollerSubsystem m_RollerSubsystem = new RollerSubsystem();
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    new JoystickButton(m_driverController, Button.kR1.value)
+    m_driverController.cross()
         .whileTrue(new RunCommand(
             () -> m_robotDrive.setX(),
             m_robotDrive));
+m_driverController.square()
+.onTrue( m_robotDrive.zeroYaw());
+
   }
 
   /**
