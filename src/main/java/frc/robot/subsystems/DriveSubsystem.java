@@ -69,6 +69,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    //System.out.println(m_frontLeft.getState().angle.getDegrees());
     // Update the odometry in the periodic block
     m_odometry.update(
         Rotation2d.fromDegrees(-m_gyro.getAngle()),

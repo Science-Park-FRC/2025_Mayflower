@@ -14,6 +14,8 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
@@ -22,9 +24,11 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.RollerSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import java.util.List;
@@ -42,12 +46,15 @@ public class RobotContainer {
     // The driver's controller
     CommandPS5Controller m_driverController = new CommandPS5Controller(OIConstants.kDriverControllerPort);
 
+    private SendableChooser<Integer> autoChooser = new SendableChooser<>();
+
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
         // Configure the button bindings
         configureButtonBindings();
+
 
         // Configure default commands
         m_robotDrive.setDefaultCommand(
@@ -82,6 +89,10 @@ public class RobotContainer {
         m_driverController.square()
                 .onTrue(m_robotDrive.zeroYaw());
 
+        autoChooser.setDefaultOption("Do Nothing", 0);
+        autoChooser.addOption("Leave + Score", 1);
+        autoChooser.addOption("Leave", 2);
+        SmartDashboard.putData("Autonomous Mode", autoChooser);
     }
 
     /**
@@ -91,9 +102,26 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // Create config for trajectory
-        
+        int mode = autoChooser.getSelected();
         // Run path following command, then stop at the end.
-        return new RunCommand(() -> m_robotDrive.drive(0.5, 0, 0, false), m_robotDrive).withTimeout(2)
-                .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0.5)));
+        switch (mode){
+            case 0:
+                return new PrintCommand("lmao");
+                
+            case 1:
+                return new InstantCommand(() -> m_robotDrive.drive(0.25, 0, 0, false), m_robotDrive)
+                    .andThen(new WaitCommand(4))
+                    .andThen(new InstantCommand(() -> m_robotDrive.drive(0, 0, 0, false), m_robotDrive))
+                    .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0.5), m_RollerSubsystem))
+                    .andThen(new WaitCommand(3))
+                    .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0), m_RollerSubsystem));
+
+            case 2:
+                return new InstantCommand(() -> m_robotDrive.drive(0.25, 0, 0, false), m_robotDrive)
+                    .andThen(new WaitCommand(2))
+                    .andThen(new InstantCommand(() -> m_robotDrive.drive(0, 0, 0, false), m_robotDrive));
+        }
+            return new PrintCommand("how did you get here");
+        
     }
 }
