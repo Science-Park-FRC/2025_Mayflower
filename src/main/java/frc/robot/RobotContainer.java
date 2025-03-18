@@ -69,7 +69,7 @@ public class RobotContainer {
                         m_robotDrive));
 
         m_RollerSubsystem.setDefaultCommand(new RunCommand(
-                () -> m_RollerSubsystem.runMotor((m_driverController.getR2Axis() + 1) / 4.0), m_RollerSubsystem));
+                () -> m_RollerSubsystem.runMotor((m_driverController.getR2Axis() + 1) / 7.5), m_RollerSubsystem));
     }
 
     /**
