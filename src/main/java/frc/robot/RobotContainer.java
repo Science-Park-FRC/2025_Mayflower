@@ -32,6 +32,9 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import java.util.List;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -41,20 +44,23 @@ import java.util.List;
  */
 public class RobotContainer {
     // The robot's subsystems
-    private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+    public final DriveSubsystem m_robotDrive = new DriveSubsystem();
     private final RollerSubsystem m_RollerSubsystem = new RollerSubsystem();
     // The driver's controller
     CommandPS5Controller m_driverController = new CommandPS5Controller(OIConstants.kDriverControllerPort);
 
-    private SendableChooser<Integer> autoChooser = new SendableChooser<>();
+    // Change to use Commands instead of integers
+    private SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
+        // Register named commands for PathPlanner
+        registerNamedCommands();
+        
         // Configure the button bindings
         configureButtonBindings();
-
 
         // Configure default commands
         m_robotDrive.setDefaultCommand(
@@ -70,6 +76,22 @@ public class RobotContainer {
 
         m_RollerSubsystem.setDefaultCommand(new RunCommand(
                 () -> m_RollerSubsystem.runMotor((m_driverController.getR2Axis() + 1) / 7.5), m_RollerSubsystem));
+        
+        // Create auto chooser
+        createAutoChooser();
+    }
+
+    /**
+     * Register named commands used in PathPlanner autos
+     */
+    private void registerNamedCommands() {
+        // Register named commands for PathPlanner autos
+        System.out.println("SKIBIDI!!! PathPlanner named commands registered");
+        
+        NamedCommands.registerCommand("shooting coral", 
+            new InstantCommand(() -> m_RollerSubsystem.runMotor(0.5), m_RollerSubsystem)
+            .andThen(new WaitCommand(3))
+            .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0), m_RollerSubsystem)));
     }
 
     /**
@@ -88,11 +110,33 @@ public class RobotContainer {
                         m_robotDrive));
         m_driverController.square()
                 .onTrue(m_robotDrive.zeroYaw());
+    }
 
-        autoChooser.setDefaultOption("Do Nothing", 0);
-        autoChooser.addOption("Leave + Score", 1);
-        autoChooser.addOption("Leave", 2);
-        SmartDashboard.putData("Autonomous Mode", autoChooser);
+    /**
+     * Create auto chooser with all PathPlanner autos
+     */
+    private void createAutoChooser() {
+        // Build auto chooser with all PathPlanner autos
+        System.out.println("SKIBIDI!!! PathPlanner autos loaded");
+        
+        autoChooser = AutoBuilder.buildAutoChooser();
+        
+        // Add legacy auto options
+        autoChooser.addOption("Leave + Score", 
+            new InstantCommand(() -> m_robotDrive.drive(0.25, 0, 0, false), m_robotDrive)
+            .andThen(new WaitCommand(4))
+            .andThen(new InstantCommand(() -> m_robotDrive.drive(0, 0, 0, false), m_robotDrive))
+            .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0.5), m_RollerSubsystem))
+            .andThen(new WaitCommand(3))
+            .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0), m_RollerSubsystem)));
+            
+        autoChooser.addOption("Leave", 
+            new InstantCommand(() -> m_robotDrive.drive(0.25, 0, 0, false), m_robotDrive)
+            .andThen(new WaitCommand(2))
+            .andThen(new InstantCommand(() -> m_robotDrive.drive(0, 0, 0, false), m_robotDrive)));
+        
+        // Put the chooser on the dashboard
+        SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
     /**
@@ -101,27 +145,7 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        // Create config for trajectory
-        int mode = autoChooser.getSelected();
-        // Run path following command, then stop at the end.
-        switch (mode){
-            case 0:
-                return new PrintCommand("lmao");
-                
-            case 1:
-                return new InstantCommand(() -> m_robotDrive.drive(0.25, 0, 0, false), m_robotDrive)
-                    .andThen(new WaitCommand(4))
-                    .andThen(new InstantCommand(() -> m_robotDrive.drive(0, 0, 0, false), m_robotDrive))
-                    .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0.5), m_RollerSubsystem))
-                    .andThen(new WaitCommand(3))
-                    .andThen(new InstantCommand(() -> m_RollerSubsystem.runMotor(0), m_RollerSubsystem));
-
-            case 2:
-                return new InstantCommand(() -> m_robotDrive.drive(0.25, 0, 0, false), m_robotDrive)
-                    .andThen(new WaitCommand(2))
-                    .andThen(new InstantCommand(() -> m_robotDrive.drive(0, 0, 0, false), m_robotDrive));
-        }
-            return new PrintCommand("how did you get here");
-        
+        // Just return the selected command from the chooser
+        return autoChooser.getSelected();
     }
 }

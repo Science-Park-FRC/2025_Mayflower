@@ -27,6 +27,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+// PathPlanner imports
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
@@ -67,6 +74,77 @@ public class DriveSubsystem extends SubsystemBase {
   public DriveSubsystem() {
     // Usage reporting for MAXSwerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
+
+    // Configure PathPlanner for auto generation
+    configurePathPlanner();
+  }
+  
+  /**
+   * Configure PathPlanner auto builder
+   */
+  private void configurePathPlanner() {
+    System.out.println("SKIBIDI!!! Configuring PathPlanner");
+    
+    // Load robot configuration from PathPlanner GUI settings
+    RobotConfig config;
+    try {
+      config = RobotConfig.fromGUISettings();
+      System.out.println("SKIBIDI!!! PathPlanner config loaded successfully");
+    } catch (Exception e) {
+      // Handle exception as needed
+      System.err.println("Error loading PathPlanner config: " + e.getMessage());
+      e.printStackTrace();
+      return;
+    }
+    
+    // Configure the AutoBuilder
+    AutoBuilder.configure(
+        this::getPose,  // Robot pose supplier
+        this::resetOdometry, // Method to reset odometry
+        this::getChassisSpeeds, // Robot-relative ChassisSpeeds supplier
+        this::driveRobotRelative, // Method to drive robot with robot-relative speeds
+        new PPHolonomicDriveController(
+            new PIDConstants(1.0, 0.0, 0.0), // Translation PID constants
+            new PIDConstants(1.0, 0.0, 0.0) // Rotation PID constants
+        ),
+        config, // Robot configuration
+        () -> {
+          // Boolean supplier that controls path flipping based on alliance
+          var alliance = DriverStation.getAlliance();
+          if (alliance.isPresent()) {
+            return alliance.get() == Alliance.Red;
+          }
+          return false;
+        },
+        this // Reference to this subsystem to set requirements
+    );
+  }
+  
+  /**
+   * Method to drive the robot using chassis speeds
+   */
+  public void driveRobotRelative(ChassisSpeeds speeds) {
+    // Convert to swerve module states
+    SwerveModuleState[] moduleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    
+    // Apply to modules
+    setModuleStates(moduleStates);
+  }
+  
+  /**
+   * Returns the current robot-relative chassis speeds
+   */
+  public ChassisSpeeds getChassisSpeeds() {
+    // Get current module states
+    SwerveModuleState[] states = new SwerveModuleState[] {
+        m_frontLeft.getState(),
+        m_frontRight.getState(),
+        m_rearLeft.getState(),
+        m_rearRight.getState()
+    };
+    
+    // Convert to chassis speeds
+    return DriveConstants.kDriveKinematics.toChassisSpeeds(states);
   }
 
   @Override
