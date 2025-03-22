@@ -35,6 +35,8 @@ import java.util.List;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -116,10 +118,32 @@ public class RobotContainer {
      * Create auto chooser with all PathPlanner autos
      */
     private void createAutoChooser() {
-        // Build auto chooser with all PathPlanner autos
+        // Create empty auto chooser
+        autoChooser = new SendableChooser<>();
         System.out.println("SKIBIDI!!! PathPlanner autos loaded");
         
-        autoChooser = AutoBuilder.buildAutoChooser();
+        // Explicitly add each auto with alliance mirroring
+        
+        // CORAL AUTO L
+        Command coralAutoL = new PathPlannerAuto(
+            "Coral Auto (L)", 
+            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
+        );
+        autoChooser.setDefaultOption("Coral Auto (L)", coralAutoL);
+        
+        // CORAL AUTO M
+        Command coralAutoM = new PathPlannerAuto(
+            "Coral Auto (M)", 
+            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
+        );
+        autoChooser.addOption("Coral Auto (M)", coralAutoM);
+        
+        // CORAL AUTO R
+        Command coralAutoR = new PathPlannerAuto(
+            "Coral Auto (R)", 
+            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
+        );
+        autoChooser.addOption("Coral Auto (R)", coralAutoR);
         
         // Add legacy auto options
         autoChooser.addOption("Leave + Score", 

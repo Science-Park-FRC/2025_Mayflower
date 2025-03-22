@@ -39,6 +39,12 @@
           "data": {
             "pathName": "coral station to reef"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shooting coral"
+          }
         }
       ]
     }

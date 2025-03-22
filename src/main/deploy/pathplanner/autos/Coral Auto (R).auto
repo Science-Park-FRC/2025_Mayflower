@@ -1,0 +1,61 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right side to reef"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.65
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shooting coral"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right side reef to coral station"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.3
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right coral station to reef"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.65
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shooting coral"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
